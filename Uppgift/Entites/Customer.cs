@@ -12,5 +12,6 @@ namespace Uppgift.Entites
         public string LastName { get; set; }
         public bool IsMember { get; set; }
         public ICollection<Movie> Movies { get; set; }
+        public double TotalCost { get; set; }
     }
 }
