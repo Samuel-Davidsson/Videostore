@@ -9,8 +9,9 @@ namespace Uppgift
     {
         private static bool keepRunning = true;
         private static bool IsMember = false;
+        private static int specialRentDealForPatron = 0;
         private static double fixedCost = 100;
-        private static List<Customer> customerList = new List<Customer>(); 
+        private static List<Customer> customerList = new List<Customer>();
 
         static void Main(string[] args)
         {
@@ -34,7 +35,7 @@ namespace Uppgift
                     ShowTotalCostByName();
                     break;
                 case '3':
-                    ShowTotalCostForCustomers();              
+                    ShowTotalCostForCustomers();
                     break;
                 case '4':
                     keepRunning = false;
@@ -66,13 +67,22 @@ namespace Uppgift
             Console.WriteLine("Type the name of the customer example: Samuel Davidsson");
             var name = Console.ReadLine();
             string[] fullName = name.Split();
+            while (fullName.Length <= 1)
+            {
+                Console.WriteLine("Please type first and last name again: Samuel Davidsson");
+                name = Console.ReadLine();
+                fullName = name.Split();
+            }
 
             foreach (var customer in customerList)
             {
-                if (customer.FirstName == fullName[0] && customer.LastName == fullName[1])
+                if (customer.FirstName.ToLower() == fullName[0].ToLower() && customer.LastName.ToLower() == fullName[1].ToLower())
                 {
-                    double totalCost = CalculateTotalCost(customer);
-                    Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {totalCost}");
+                    Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {customer.TotalCost}");
+                }
+                else
+                {
+                    Console.WriteLine($"A customer with name {fullName[0]} {fullName[1]} does not exist");
                 }
             }
         }
@@ -81,8 +91,7 @@ namespace Uppgift
         {
             foreach (var customer in customerList)
             {
-                double totalCost = CalculateTotalCost(customer);
-                Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {totalCost}");
+                Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {customer.TotalCost}");
             }
         }
 
@@ -99,22 +108,24 @@ namespace Uppgift
             if (IsMember = (char.ToLower(c) == 'y'))
             {
                 IsMember = true;
+                specialRentDealForPatron = 4;
             }
 
             var customer = new Customer
             {
                 FirstName = firstName,
                 LastName = lastName,
-                IsMember = IsMember
+                IsMember = IsMember,
+                PatronFixedCostFourMovies = specialRentDealForPatron
             };
 
             customerList.Add(customer);
 
             customer.Movies = AddMoviesToCustomer(customer);
-           
-            double totalCost = CalculateTotalCost(customer);
 
-            Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {totalCost}");
+            customer.TotalCost = CalculateTotalCost(customer);
+
+            Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {customer.TotalCost}");
         }
 
         private static ICollection<Movie> AddMoviesToCustomer(Customer customer)
@@ -173,59 +184,50 @@ namespace Uppgift
 
         private static double CalculateTotalCost(Customer customer)
         {
-            double totalCost;
 
             if (customer.IsMember == true && customer.Movies.Count >= 4)
             {
-                totalCost = DiscountForRentingFourOrMoreMovies(customer);
+                customer.TotalCost = DiscountForRentingFourOrMoreMoviesAsPatron(customer);
             }
             else if (customer.IsMember == true)
             {
-                totalCost = CalculateTotalCostForPatronCustomer(customer);
+                customer.TotalCost = CalculateTotalCostForPatronCustomer(customer);
             }
             else
             {
-                totalCost = CalculateTotalCostRegularCustomer(customer);
+                customer.TotalCost = CalculateTotalCostRegularCustomer(customer);
             }
-            return totalCost;
+            return (Math.Round(customer.TotalCost));
         }
 
-        private static double DiscountForRentingFourOrMoreMovies(Customer customer)
+        private static double DiscountForRentingFourOrMoreMoviesAsPatron(Customer customer)
         {
             var movies = customer.Movies.OrderByDescending(x => x.MovieType);
             Movie[] arrayOfMovies = movies.ToArray();
 
             for (int i = 0; i < arrayOfMovies.Length; i++)
             {
-                if (i < 4)
+                if (i < specialRentDealForPatron)
                 {
                     continue;
                 }
                 else
                 {
-                    var memberDiscount = arrayOfMovies[i].Discount * arrayOfMovies[i].Price;
+                    var memberDiscount = arrayOfMovies[i].CalculatePatronPrice(arrayOfMovies[i].Discount, arrayOfMovies[i].Price);
                     customer.TotalCost += arrayOfMovies[i].Price - memberDiscount;
                 }
             }
             var totalCostWithFixedCost = customer.TotalCost + fixedCost;
-            return Math.Round(totalCostWithFixedCost);
+            return totalCostWithFixedCost;
         }
 
         private static double CalculateTotalCostForPatronCustomer(Customer customer)
         {
             foreach (var movie in customer.Movies)
             {
-                if (customer.IsMember == true && movie.MovieType == MovieType.DVD)
-                {
-                    var memberDiscount = movie.Discount * movie.Price;
-                    customer.TotalCost += movie.Price - memberDiscount;
-                }
-                else if (customer.IsMember == true && movie.MovieType == MovieType.BlueRay)
-                {
-                    var memberDiscount = movie.Discount * movie.Price;
-                    customer.TotalCost += movie.Price - memberDiscount;
-                }
-            }
+                var memberDiscount = movie.CalculatePatronPrice(movie.Discount, movie.Price);
+                customer.TotalCost += movie.Price - memberDiscount;
+            } 
             return customer.TotalCost;
         }
 
@@ -233,16 +235,9 @@ namespace Uppgift
         {
             foreach (var movie in customer.Movies)
             {
-                if (customer.IsMember == false && movie.MovieType == MovieType.DVD)
-                {
-                    customer.TotalCost += movie.Price;
-                }
-                else if (customer.IsMember == false && movie.MovieType == MovieType.BlueRay)
-                {
-                    customer.TotalCost += movie.Price;
-                }
+                customer.TotalCost += movie.Price;
             }
-            return Math.Round(customer.TotalCost);
+            return customer.TotalCost;
         }
     }
 }

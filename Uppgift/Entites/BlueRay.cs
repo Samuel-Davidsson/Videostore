@@ -25,5 +25,10 @@
                 return 0.15;
             }
         }
+
+        public override double CalculatePatronPrice(double Discount, double Price)
+        {
+            return Discount * Price;
+        }
     }
 }
