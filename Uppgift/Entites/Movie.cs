@@ -2,13 +2,16 @@
 {
     public class Movie
     {
-        public string GuidId { get; set; }
-        public MovieType MovieType { get; set; }
-        public double Price { get; set; }
+        public virtual string GuidId { get; set; }
+        public virtual MovieType MovieType { get; set; }
+        public virtual double Price { get; set; }
+        public virtual double Discount { get; set; }
     }
+
     public enum MovieType
     {
         DVD,
-        BlueRay
+        BlueRay,
+        SuperBlueRay
     }
 }
