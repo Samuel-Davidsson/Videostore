@@ -11,7 +11,10 @@ namespace Uppgift.Entites
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public bool IsMember { get; set; }
-        public ICollection<Movie> Movies { get; set; }
         public double TotalCost { get; set; }
+        public int PatronFixedCostFourMovies { get; set; }
+
+        public ICollection<Movie> Movies { get; set; }
+
     }
 }

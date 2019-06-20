@@ -29,6 +29,11 @@ namespace Uppgift.Entites
                 return 0.10;
             }
         }
+
+        public override double CalculatePatronPrice(double Discount, double Price)
+        {
+            return Discount * Price;
+        }
     }
 }
 

@@ -18,7 +18,7 @@ namespace Uppgift.Entites
         {
             get
             {
-                return 39;
+                return 49;
             }
         }
     }
