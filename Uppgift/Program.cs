@@ -9,12 +9,7 @@ namespace Uppgift
     {
         private static bool keepRunning = true;
         private static bool IsMember = false;
-        private static double dvdCost = 29;
-        private static double dvdDiscount = 0.10;
-        private static double blueRayCost = 39;
-        private static double blueRayDiscount = 0.15;
         private static double fixedCost = 100;
-        private static double totalCost = 0;
         private static List<Customer> customerList = new List<Customer>(); 
 
         static void Main(string[] args)
@@ -115,14 +110,14 @@ namespace Uppgift
 
             customerList.Add(customer);
 
-            customer.Movies = AddMoviesToCustomer();
+            customer.Movies = AddMoviesToCustomer(customer);
            
             double totalCost = CalculateTotalCost(customer);
 
             Console.WriteLine($"Totalcost for {customer.FirstName} {customer.LastName} is {totalCost}");
         }
 
-        private static List<Movie> AddMoviesToCustomer()
+        private static ICollection<Movie> AddMoviesToCustomer(Customer customer)
         {
             Console.WriteLine("How many movies of type DVD do you wanna rent?");
             var dvdCountFromUser = Console.ReadLine();
@@ -140,34 +135,40 @@ namespace Uppgift
                 blueRayCountFromUser = Console.ReadLine();
             }
 
-            var movies = new List<Movie>();
             int dvdCount = Convert.ToInt32(dvdCountFromUser);
 
-            for (int i = 1; i <= dvdCount; i++)
-            {
-                var movie = new Movie
-                {
-                    GuidId = Guid.NewGuid().ToString(),
-                    MovieType = MovieType.DVD,
-                    Price = dvdCost
-                };
-                movies.Add(movie);
-            }
+            AddDVDMoviesToList(dvdCount, customer.Movies);
 
             int blueRayCount = Convert.ToInt32(blueRayCountFromUser);
 
-            for (int i = 1; i <= blueRayCount; i++)
+            AddBlueRayMoviesToList(blueRayCount, customer.Movies);
+
+            return customer.Movies;
+
+        }
+
+        private static void AddDVDMoviesToList(int dvdCount, ICollection<Movie> movies)
+        {
+            for (int i = 1; i <= dvdCount; i++)
             {
-                var movie = new Movie
+                var movie = new Dvd
                 {
-                    GuidId = Guid.NewGuid().ToString(),
-                    MovieType = MovieType.BlueRay,
-                    Price = blueRayCost
+                    GuidId = Guid.NewGuid().ToString()
                 };
                 movies.Add(movie);
             }
-            return movies;
+        }
 
+        private static void AddBlueRayMoviesToList(int blueRayCount, ICollection<Movie> movies)
+        {
+            for (int i = 1; i <= blueRayCount; i++)
+            {
+                var movie = new BlueRay
+                {
+                    GuidId = Guid.NewGuid().ToString()
+                };
+                movies.Add(movie);
+            }
         }
 
         private static double CalculateTotalCost(Customer customer)
@@ -200,18 +201,13 @@ namespace Uppgift
                 {
                     continue;
                 }
-                else if (customer.IsMember == true && arrayOfMovies[i].MovieType == MovieType.DVD)
+                else
                 {
-                    var memberDiscount = dvdDiscount * dvdCost;
-                    totalCost += dvdCost - memberDiscount;
-                }
-                else if (customer.IsMember == true && arrayOfMovies[i].MovieType == MovieType.BlueRay)
-                {
-                    var memberDiscount = blueRayDiscount * blueRayCost;
-                    totalCost += blueRayCost - memberDiscount;
+                    var memberDiscount = arrayOfMovies[i].Discount * arrayOfMovies[i].Price;
+                    customer.TotalCost += arrayOfMovies[i].Price - memberDiscount;
                 }
             }
-            var totalCostWithFixedCost = totalCost + fixedCost;
+            var totalCostWithFixedCost = customer.TotalCost + fixedCost;
             return Math.Round(totalCostWithFixedCost);
         }
 
@@ -221,16 +217,16 @@ namespace Uppgift
             {
                 if (customer.IsMember == true && movie.MovieType == MovieType.DVD)
                 {
-                    var memberDiscount = dvdDiscount * dvdCost;
-                    totalCost += dvdCost - memberDiscount;
+                    var memberDiscount = movie.Discount * movie.Price;
+                    customer.TotalCost += movie.Price - memberDiscount;
                 }
                 else if (customer.IsMember == true && movie.MovieType == MovieType.BlueRay)
                 {
-                    var memberDiscount = blueRayDiscount * blueRayCost;
-                    totalCost += blueRayCost - memberDiscount;
+                    var memberDiscount = movie.Discount * movie.Price;
+                    customer.TotalCost += movie.Price - memberDiscount;
                 }
             }
-            return totalCost;
+            return customer.TotalCost;
         }
 
         private static double CalculateTotalCostRegularCustomer(Customer customer)
@@ -239,14 +235,14 @@ namespace Uppgift
             {
                 if (customer.IsMember == false && movie.MovieType == MovieType.DVD)
                 {
-                    totalCost += dvdCost;
+                    customer.TotalCost += movie.Price;
                 }
                 else if (customer.IsMember == false && movie.MovieType == MovieType.BlueRay)
                 {
-                    totalCost += blueRayCost;
+                    customer.TotalCost += movie.Price;
                 }
             }
-            return Math.Round(totalCost);
+            return Math.Round(customer.TotalCost);
         }
     }
 }
